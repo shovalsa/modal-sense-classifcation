@@ -14,16 +14,16 @@ def train(argv):
     test_sent = argv.test_sent
     test_targets = argv.test_targets
 
-    tf.reset_default_graph()
+    tf.compat.v1.reset_default_graph()
     with tf.Graph().as_default():
-        tf.set_random_seed(24)
-        gpu_options = tf.GPUOptions(allow_growth=True)
+        tf.compat.v1.set_random_seed(24)
+        gpu_options = tf.compat.v1.GPUOptions(allow_growth=True)
 
-        session_conf = tf.ConfigProto(allow_soft_placement=True,
+        session_conf = tf.compat.v1.ConfigProto(allow_soft_placement=True,
                                       log_device_placement=True,
                                       gpu_options=gpu_options)
 
-        sess = tf.Session(config=session_conf)
+        sess = tf.compat.v1.Session(config=session_conf)
 
         with sess.as_default():
             cnn = TextCNN(embeddings=embeddings,
@@ -37,12 +37,12 @@ def train(argv):
                           num_classes=np.asarray(train_targets, dtype=np.int32).shape[1],
                           max_length=argv.max_length)
 
-            param_stats = tf.contrib.tfprof.model_analyzer.print_model_analysis(tf.get_default_graph(),
+            param_stats = tf.contrib.tfprof.model_analyzer.print_model_analysis(tf.compat.v1.get_default_graph(),
                                     tfprof_options=tf.contrib.tfprof.model_analyzer.TRAINABLE_VARS_PARAMS_STAT_OPTIONS)
             logging.info('Total_params: %d\n' % param_stats.total_parameters)
 
             global_step = tf.Variable(0, trainable=False)
-            optimizer = tf.train.AdamOptimizer(learning_rate=argv.lr).minimize(cnn.loss)
+            optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=argv.lr).minimize(cnn.loss)
 
             # output directory for models
             timestamp = str(int(ti.time()))
@@ -57,9 +57,9 @@ def train(argv):
             if not os.path.exists(checkpoints_dir):
                 os.makedirs(checkpoints_dir)
 
-            saver = tf.train.Saver(tf.global_variables())
+            saver = tf.compat.v1.train.Saver(tf.compat.v1.global_variables())
 
-            init_vars = tf.global_variables_initializer()
+            init_vars = tf.compat.v1.global_variables_initializer()
             sess.run(init_vars)
 
             if argv.shuffle == "True":

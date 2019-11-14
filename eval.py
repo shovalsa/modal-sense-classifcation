@@ -10,12 +10,12 @@ def eval(argv):
     checkpoint_file = tf.train.latest_checkpoint(argv.checkpoint_dir)
     graph = tf.Graph()
     with graph.as_default():
-        session_conf = tf.ConfigProto(allow_soft_placement=True,
+        session_conf = tf.compat.v1.ConfigProto(allow_soft_placement=True,
                                       log_device_placement=True)
-        sess = tf.Session(config=session_conf)
+        sess = tf.compat.v1.Session(config=session_conf)
         with sess.as_default():
             # Load the saved meta graph and restore variables
-            saver = tf.train.import_meta_graph("{}.meta".format(checkpoint_file))
+            saver = tf.compat.v1.train.import_meta_graph("{}.meta".format(checkpoint_file))
             saver.restore(sess, checkpoint_file)
 
             sentences_pl = graph.get_operation_by_name("sentences").outputs[0]
