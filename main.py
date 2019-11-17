@@ -28,7 +28,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_iter', type=int, default=1001, help='number of iterations to train')
     parser.add_argument("--train_emb", type=str, default="False", help="train embeddings or not")
     parser.add_argument("--pretrained_emb", type=str, default="True", help="pretrained emb or not")
-    parser.add_argument('--corpus', default=None, help='corpus for training')
+    parser.add_argument('--corpus', default='can_balance_classifier2', help='corpus for training')
     parser.add_argument('--shuffle', default="False", help='shuffle training data')
     parser.add_argument('--drop_mv', default="False", help='drop mv from sent')
     parser.add_argument('--test_corpus', default=None, help='test corpus for training')

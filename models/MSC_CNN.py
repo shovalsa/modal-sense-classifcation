@@ -88,7 +88,7 @@ class TextCNN(object):
                                     padding='VALID')
             pooled_outputs.append(pooled)
         print(f'conv: {conv}\n conv shape {conv.shape}\n pooled: {pooled} \n pooled shape {pooled.shape}')
-        h_pool = tf.concat(3, pooled_outputs)
+        h_pool = tf.concat(pooled_outputs, 3)
         h_pool_flat = tf.reshape(h_pool, [-1, num_filters_total])
         h_drop = tf.nn.dropout(h_pool_flat, 1 - (self.dropout_keep_prob))
         scores = tf.compat.v1.nn.xw_plus_b(h_drop, weight_output, bias_output)
@@ -97,6 +97,6 @@ class TextCNN(object):
 
         tv = tf.compat.v1.trainable_variables()
         regularization_cost = tf.reduce_sum(input_tensor=[tf.nn.l2_loss(v) for v in tv])
-
-        self.loss = tf.reduce_mean(input_tensor=tf.nn.softmax_cross_entropy_with_logits(labels=tf.stop_gradient(tf.cast(self.targets, tf.float32)))) +\
+        labels = tf.stop_gradient(tf.cast(self.targets, tf.float32))
+        self.loss = tf.reduce_mean(input_tensor=tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=scores)) +\
                         reg_coef * regularization_cost
