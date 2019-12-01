@@ -7,6 +7,8 @@ import logging
 import itertools
 from collections import Counter
 import json
+import numpy as np
+import argparse
 
 
 def clean_str(string):
@@ -94,10 +96,24 @@ def dump_vocab_for_entire_set(dataset_path, vocab_fp):
 
 
 if __name__ == "__main__":
-    bin_path = '/home/shoval/repos/openU/modality/embeddings/GoogleNews-vectors-negative300.bin'
-    vec_path = '/home/shoval/repos/openU/modality/embeddings/GoogleNews-vectors-negative300.vec'
-    dataset_path = '../data/EPOS_E'
-    vocab_filepath = '../vocabs/dataset_vocab.json'
-    make_ds_csv(dataset_path=dataset_path)
-    dump_vocab_for_entire_set(dataset_path=dataset_path, vocab_fp=vocab_filepath)
-    convert_embed_to_vec(bin_path, vec_path)
+    parser = argparse.ArgumentParser(description='utilities for pytorchversion', add_help=False,
+                                     conflict_handler='resolve')
+
+    parser.add_argument('--bin_path', default='../embeddings/GoogleNews-vectors-negative300.bin',
+                        help='path to binary file of w2v')
+
+    parser.add_argument('--vec_path', default='../embeddings/GoogleNews-vectors-negative300.vec',
+                        help='path to save text file of w2v')
+
+
+    parser.add_argument('--dataset_path', default='../data/EPOS_E')
+    parser.add_argument('--vocab_filepath', default='../vocabs/dataset_vocab.json')
+    # bin_path = '/home/shoval/repos/openU/modality/embeddings/GoogleNews-vectors-negative300.bin'
+    # vec_path = '/home/shoval/repos/openU/modality/embeddings/GoogleNews-vectors-negative300.vec'
+    # dataset_path = '../data/EPOS_E'
+    # vocab_filepath = '../vocabs/dataset_vocab.json'
+
+    argv = parser.parse_args()
+    make_ds_csv(dataset_path=argv.dataset_path)
+    dump_vocab_for_entire_set(dataset_path=argv.dataset_path, vocab_fp=argv.vocab_filepath)
+    convert_embed_to_vec(argv.bin_path, argv.vec_path)
