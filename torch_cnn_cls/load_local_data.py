@@ -6,7 +6,7 @@ import numpy as np
 from torchtext import data
 from torchtext.data import Field, TabularDataset
 from torchtext.vocab import Vectors
-from torch_cnn_cls.utils import clean_str
+from utils import clean_str
 
 
 tokenize = lambda x: x.split() # the text in source files is already tokenized

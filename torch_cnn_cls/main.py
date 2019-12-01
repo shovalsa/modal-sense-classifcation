@@ -1,11 +1,12 @@
-from torch_cnn_cls.load_local_data import create_torchtext_data_object, load_dataset
+from load_local_data import create_torchtext_data_object, load_dataset
 import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
 import torch.optim as optim
 import numpy as np
-from torch_cnn_cls.CNN import CNN
+from CNN import CNN
 import argparse
+from utils import convert_embed_to_vec
 
 
 
@@ -88,6 +89,8 @@ if __name__ == "__main__":
     parser.add_argument('--dataset_path', default="./epos_data", help="dir path where train.csv and test.csv are located."
                                                                       "(created with utils.py)")
 
+    parser.add_argument('--cuda', default='0')
+
     argv = parser.parse_args()
 
     learning_rate = 1e-3
@@ -96,17 +99,34 @@ if __name__ == "__main__":
     hidden_size = 256
     embedding_length = 300
 
+
+    print("preparing data ...")
     train, valid, test = create_torchtext_data_object(argv.dataset_path)
-    TEXT, vocab_size, word_embeddings, train_iter, valid_iter, test_iter = load_dataset(train_data=train,
+    try:
+        TEXT, vocab_size, word_embeddings, train_iter, valid_iter, test_iter = load_dataset(train_data=train,
                                                                                         val=valid, test=test,
                                                                                         embed_fp=argv.vector_file)
+    except FileNotFoundError:
+        print('Converting binary w2v file to text file.')
+        destination_file = argv.vector_file + ".vec"
+        convert_embed_to_vec(argv.vector_file.replace(".vec", ".bin"), destination_file)
+        TEXT, vocab_size, word_embeddings, train_iter, valid_iter, test_iter = load_dataset(train_data=train,
+                                                                                        val=valid, test=test,
+                                                                                        embed_fp=destination_file)
 
+    print("Building model ...")
     model = CNN(batch_size=batch_size, output_size=output_size, in_channels=1, out_channels=1, kernel_heights=[3, 4, 5],
                 stride=1, padding=1, keep_probab=0.5, vocab_size=vocab_size, embedding_length=embedding_length,
                 weights=word_embeddings)
+
+    device = torch.device(f"cuda:{argv.cuda}") if torch.cuda.is_available() else "cpu"
+    print(f'Device is: {device}')
+    model.to(device)
+
     loss_fn = F.cross_entropy
 
     for epoch in range(10):
+        print(f"Epoch {epoch}")
         train_loss, train_acc = train_model(model, train_iter, epoch)
         val_loss, val_acc = eval_model(model, valid_iter)
 
