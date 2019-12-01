@@ -13,13 +13,13 @@ tokenize = lambda x: x.split() # the text in source files is already tokenized
 TEXT = Field(sequential=True, tokenize=tokenize, lower=True)
 LABEL = Field(sequential=False, use_vocab=False)
 
-def create_torchtext_data_object():
+def create_torchtext_data_object(dataset_path):
     train_validation_datafields = [("id", None),
                      ("sentence", TEXT), ("de", LABEL),
                      ("dy", LABEL), ("ep", LABEL)]
 
     train, valid = TabularDataset.splits(
-                   path="./epos_data/", # the root directory where the data lies
+                   path=dataset_path, # the root directory where the data lies
                    train='train_set.csv', validation="val_set.csv",
                    format='tsv',
                    skip_header=True,
@@ -29,7 +29,7 @@ def create_torchtext_data_object():
                      ("sentence", TEXT), ("de", LABEL),
                      ("dy", LABEL), ("ep", LABEL)]
     test = TabularDataset(
-               path="./epos_data/test_set.csv",
+               path=f"{dataset_path}test_set.csv",
                format='tsv',
                skip_header=True,
                fields=test_datafields)
