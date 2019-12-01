@@ -82,7 +82,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='pytorch version of CNN modal sense classification', add_help=False,
                                      conflict_handler='resolve')
 
-    parser.add_argument('--vector_file', default='./embeddings/GoogleNews-vectors-negative300.vec',
+    parser.add_argument('--vector_file', default='../embeddings/GoogleNews-vectors-negative300.vec',
                         help='path to text file of w2v. If no such file exists, utils.py can create it from '
                              'a binary file.')
 

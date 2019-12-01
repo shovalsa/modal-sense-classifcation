@@ -115,5 +115,6 @@ if __name__ == "__main__":
 
     argv = parser.parse_args()
     make_ds_csv(dataset_path=argv.dataset_path)
-    dump_vocab_for_entire_set(dataset_path=argv.dataset_path, vocab_fp=argv.vocab_filepath)
-    convert_embed_to_vec(argv.bin_path, argv.vec_path)
+    # dump_vocab_for_entire_set(dataset_path=argv.dataset_path, vocab_fp=argv.vocab_filepath)
+
+    # convert_embed_to_vec(argv.bin_path, argv.vec_path)
