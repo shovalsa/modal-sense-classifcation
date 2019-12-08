@@ -14,9 +14,7 @@ tokenize = lambda x: x.split() # the text in source files is already tokenized
 TEXT = Field(sequential=True, tokenize=tokenize, lower=True)
 LABEL = Field(sequential=False, use_vocab=False)
 
-def create_torchtext_data_object(dataset_path, labels):
-    labels = {'de': 0, 'dy': 1, 'ep': 2}
-    label = lambda x: labels[x]
+def create_torchtext_data_object(dataset_path):
     train_validation_datafields = [("id", None),
                      ("sentence", TEXT), ("label", LABEL)]
 

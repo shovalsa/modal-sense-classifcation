@@ -32,7 +32,7 @@ def clean_str(string):
     return string.strip().lower()
 
 
-def make_ds_csv(dataset_path, one_hot=False):
+def make_ds_csv(dataset_path, labels, one_hot=False):
     for batch in ['train', 'test']:
         batch_dfs = []
         for root, dirs, files in os.walk(f'{dataset_path}/{batch}'):
@@ -44,6 +44,8 @@ def make_ds_csv(dataset_path, one_hot=False):
                         df['de'] = df['label'].apply(lambda x: 1 if x == 'de' else 0)
                         df['dy'] = df['label'].apply(lambda x: 1 if x == 'dy' else 0)
                         df = df.drop(columns='label')
+                    else:
+                        df['label'] = df['label']. apply(lambda x: labels[x])
                     batch_dfs.append(df)
         batch_df = pd.concat(batch_dfs, ignore_index=True)
         if batch == 'train':
@@ -115,7 +117,8 @@ if __name__ == "__main__":
     # vocab_filepath = '../vocabs/dataset_vocab.json'
 
     argv = parser.parse_args()
-    make_ds_csv(dataset_path=argv.dataset_path)
+    labels = {'de': 0, 'dy': 1, 'ep': 2}
+    make_ds_csv(dataset_path=argv.dataset_path, labels=labels)
     # dump_vocab_for_entire_set(dataset_path=argv.dataset_path, vocab_fp=argv.vocab_filepath)
 
     # convert_embed_to_vec(argv.bin_path, argv.vec_path)
