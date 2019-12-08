@@ -7,6 +7,7 @@ import numpy as np
 from CNN import CNN
 import argparse
 from utils import convert_embed_to_vec
+from tqdm import tqdm
 
 
 
@@ -25,8 +26,8 @@ def train_model(model, train_iter, epoch):
     optim = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()))
     steps = 0
     model.train()
-    for idx, batch in enumerate(train_iter):
-        text = batch.text[0]
+    for idx, batch in tqdm(enumerate(train_iter)):
+        text = batch.sentence[0]
         target = batch.label
         target = torch.autograd.Variable(target).long()
         if torch.cuda.is_available():
@@ -59,7 +60,7 @@ def eval_model(model, val_iter):
     total_epoch_acc = 0
     model.eval()
     with torch.no_grad():
-        for idx, batch in enumerate(val_iter):
+        for idx, batch in tqdm(enumerate(val_iter)):
             text = batch.text[0]
             if (text.size()[0] is not 32):
                 continue

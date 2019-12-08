@@ -32,17 +32,18 @@ def clean_str(string):
     return string.strip().lower()
 
 
-def make_ds_csv(dataset_path):
+def make_ds_csv(dataset_path, one_hot=False):
     for batch in ['train', 'test']:
         batch_dfs = []
         for root, dirs, files in os.walk(f'{dataset_path}/{batch}'):
             for file in files:
                 if '.txt' in file:
                     df = pd.read_csv(os.path.join(root, file), sep='\t', names=['text', 'label'])
-                    df['ep'] = df['label'].apply(lambda x: 1 if x == 'ep' else 0)
-                    df['de'] = df['label'].apply(lambda x: 1 if x == 'de' else 0)
-                    df['dy'] = df['label'].apply(lambda x: 1 if x == 'dy' else 0)
-                    df = df.drop(columns='label')
+                    if one_hot:
+                        df['ep'] = df['label'].apply(lambda x: 1 if x == 'ep' else 0)
+                        df['de'] = df['label'].apply(lambda x: 1 if x == 'de' else 0)
+                        df['dy'] = df['label'].apply(lambda x: 1 if x == 'dy' else 0)
+                        df = df.drop(columns='label')
                     batch_dfs.append(df)
         batch_df = pd.concat(batch_dfs, ignore_index=True)
         if batch == 'train':
@@ -96,7 +97,7 @@ def dump_vocab_for_entire_set(dataset_path, vocab_fp):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='utilities for pytorchversion', add_help=False,
+    parser = argparse.ArgumentParser(description='utilities for pytorch version', add_help=False,
                                      conflict_handler='resolve')
 
     parser.add_argument('--bin_path', default='../embeddings/GoogleNews-vectors-negative300.bin',
@@ -106,8 +107,8 @@ if __name__ == "__main__":
                         help='path to save text file of w2v')
 
 
-    parser.add_argument('--dataset_path', default='../data/EPOS_E')
-    parser.add_argument('--vocab_filepath', default='../vocabs/dataset_vocab.json')
+    parser.add_argument('--dataset_path', default='./data/EPOS_E')
+    parser.add_argument('--vocab_filepath', default='./vocabs/dataset_vocab.json')
     # bin_path = '/home/shoval/repos/openU/modality/embeddings/GoogleNews-vectors-negative300.bin'
     # vec_path = '/home/shoval/repos/openU/modality/embeddings/GoogleNews-vectors-negative300.vec'
     # dataset_path = '../data/EPOS_E'

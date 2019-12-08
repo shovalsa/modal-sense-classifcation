@@ -7,16 +7,18 @@ from torchtext import data
 from torchtext.data import Field, TabularDataset
 from torchtext.vocab import Vectors
 from utils import clean_str
+import torch
 
 
 tokenize = lambda x: x.split() # the text in source files is already tokenized
 TEXT = Field(sequential=True, tokenize=tokenize, lower=True)
 LABEL = Field(sequential=False, use_vocab=False)
 
-def create_torchtext_data_object(dataset_path):
+def create_torchtext_data_object(dataset_path, labels):
+    labels = {'de': 0, 'dy': 1, 'ep': 2}
+    label = lambda x: labels[x]
     train_validation_datafields = [("id", None),
-                     ("sentence", TEXT), ("de", LABEL),
-                     ("dy", LABEL), ("ep", LABEL)]
+                     ("sentence", TEXT), ("label", LABEL)]
 
     train, valid = TabularDataset.splits(
                    path=dataset_path, # the root directory where the data lies
@@ -26,8 +28,7 @@ def create_torchtext_data_object(dataset_path):
                    fields=train_validation_datafields)
 
     test_datafields = [("id", None),
-                     ("sentence", TEXT), ("de", LABEL),
-                     ("dy", LABEL), ("ep", LABEL)]
+                     ("sentence", TEXT), ("label", LABEL)]
     test = TabularDataset(
                path=f"{dataset_path}test_set.csv",
                format='tsv',
@@ -89,9 +90,11 @@ def load_dataset(train_data, val, test, embed_fp):
     LABEL.build_vocab(train_data)
 
     word_embeddings = TEXT.vocab.vectors
+    torch.save(word_embeddings, './TEXT.vocab.vectors.pt')
     print ("Length of Text Vocabulary: " + str(len(TEXT.vocab)))
     print ("Vector size of Text Vocabulary: ", TEXT.vocab.vectors.size())
     print ("Label Length: " + str(len(LABEL.vocab)))
+
 
     train_data, valid_data = train_data.split() # Further splitting of training_data to create new training_data & validation_data
     train_iter, valid_iter, test_iter = data.BucketIterator.splits((train_data, valid_data, test), batch_size=32, sort_key=lambda x: len(x.text), repeat=False, shuffle=True)
