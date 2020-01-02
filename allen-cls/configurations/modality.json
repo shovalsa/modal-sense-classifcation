@@ -1,0 +1,63 @@
+{
+  "dataset_reader": {
+    "type": "modalitylite",
+    "token_indexers": {
+      "tokens": {
+        "type": "single_id",
+        "lowercase_tokens": true,
+        "token_min_padding_length": 5
+      }
+    },
+    "wiki_tokenizer": {
+      "type":"word",
+      "word_splitter": {
+        "type": "just_spaces"
+      }
+    },
+    "sentence_tokenizer": {
+      "type":"word",
+      "word_splitter": {
+        "type": "simple"
+      }
+    }
+  },
+  "train_data_path": "data/EPOS_E/dtrain.jsonl",
+  "validation_data_path": "data/EPOS_E/validation.jsonl",
+  "model": {
+    "type": "modalitycnn",
+    "text_field_embedder": {
+      "tokens": {
+        "type": "embedding",
+        "pretrained_file": "/home/shoval/repos/athNLP/athnlp-labs/resources/glove.6B.50d.txt.gz",
+        "embedding_dim": 50,
+        "trainable": false
+      }
+    },
+    "final_feedforward": {
+      "input_dim": 8,
+      "num_layers": 2,
+      "hidden_dims": [50, 3],
+      "activations": ["relu","linear"],
+      "dropout": 0.5
+    },
+    "initializer": [
+      [".*linear_layers.*weight", {"type": "xavier_normal"}]
+     ]
+  },
+  "iterator": {
+    "type": "bucket",
+    "sorting_keys": [["sentence", "num_tokens"]],
+    "batch_size": 32
+  },
+  "trainer": {
+    "num_epochs": 20,
+    "cuda_device": -1,
+    "patience": 10,
+    "validation_metric": "+accuracy",
+    "optimizer": {
+      "type": "sgd",
+      "lr": 1e-4
+
+    }
+  }
+}
