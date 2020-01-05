@@ -1,39 +1,47 @@
 import jsonlines
 import os
-from random import shuffle
+from argparse import ArgumentParser
 
-def build_jsonlines_file(datapath, dataset, binarize=False, convert_to_int=False):
-    if binarize:
-        output = f"{datapath}/{dataset}_binary.jsonl"
-    elif convert_to_int:
-        output = f"{datapath}/{dataset}_int.jsonl"
-    else:
-        output = f"{datapath}/{dataset}.jsonl"
+def build_jsonlines_file(datapath, dataset, binarize=False, convert_to_int=False, balanced=".txt", remove_duplicates=False):
+    addition = "_binary" if binarize else "_int" if convert_to_int else "_duplicates_removed" if remove_duplicates else \
+        "{}".format(balanced) if balanced != ".txt" else ""
+    output = f"{datapath}/{dataset}{addition}.jsonl"
+    in_ds = set()
     with jsonlines.open(output, "w") as output:
         for root, dirs, files in os.walk(f"{datapath}/{dataset}"):
             for file in files:
                 modal_verb = file.split("_")[0]
-                with open(os.path.join(root, file)) as f:
-                    try:
-                        for line in f.readlines():
-                            line = line.split("\t")
-                            label = line[1].strip()
-                            if label not in ["ep", "de", "dy"]:
-                                label = line[-1].split(",")[-1].strip()
-                            if binarize:
-                                label = "priority" if label == "de" else "non-priority"
-                            elif convert_to_int:
-                                label = "0" if label == "de" else "1" if label == "ep" else "2"
-                            line = {"sentence": line[0], "label": label, "modal_verb": modal_verb}
-                            output.write(line)
-                    except UnicodeDecodeError:
-                        print(file)
+                if balanced in file:
+                    with open(os.path.join(root, file)) as f:
+                        try:
+                            for line in f.readlines():
+                                line = line.split("\t")
+                                if remove_duplicates:
+                                    if line[0].strip() in in_ds:
+                                        continue
+                                    else:
+                                        in_ds.add(line[0].strip())
+                                label = line[1].strip()
+                                if label not in ["ep", "de", "dy"]:
+                                    label = line[-1].split(",")[-1].strip()
+                                if binarize:
+                                    label = "priority" if label == "de" else "non-priority"
+                                elif convert_to_int:
+                                    label = "0" if label == "de" else "1" if label == "ep" else "2"
+                                line = {"sentence": line[0], "label": label, "modal_verb": modal_verb}
+                                output.write(line)
+                        except UnicodeDecodeError:
+                            print("skipping file {}".format(file))
+    if dataset == "train":
+        is_balanced = False if balanced == ".txt" else balanced
+        create_validation_set(datapath, binary=binarize, convert_to_int=convert_to_int, balanced=is_balanced, duplicates=remove_duplicates)
 
 
-def create_validation_set(datapath, binary=False, convert_to_int=False):
-    train = "{}/train_binary.jsonl".format(datapath) if binary else "{}/train_int.jsonl".format(datapath) if convert_to_int else "{}/train.jsonl".format(datapath)
-    validation = "{}/validation_binary.jsonl".format(datapath) if binary else "{}/validation_int.jsonl".format(datapath) if convert_to_int else "{}/validation.jsonl".format(datapath)
-    new_train = "{}/dtrain_binary.jsonl".format(datapath) if binary else "{}/dtrain_int.jsonl".format(datapath) if convert_to_int else "{}/dtrain.jsonl".format(datapath)
+def create_validation_set(datapath, binary=False, convert_to_int=False, balanced=None, duplicates=False):
+    addition = "_binary" if binary else "_int" if convert_to_int else "_duplicates_removed" if duplicates else "{}".format(balanced) if balanced else ""
+    train = "{}/train{}.jsonl".format(datapath, addition)
+    validation = "{}/validation{}.jsonl".format(datapath, addition)
+    new_train = "{}/dtrain{}.jsonl".format(datapath, addition)
     with jsonlines.open(train, "r") as tr:
         with jsonlines.open(validation, mode="w") as trainf:
             with jsonlines.open(new_train, mode="w") as valf:
@@ -54,8 +62,22 @@ def validate_output(fp):
         print(labels)
 
 if __name__ == "__main__":
-    build_jsonlines_file(datapath="../../data/EPOS_E", dataset="train", binarize=False, convert_to_int=False)
-    build_jsonlines_file(datapath="../../data/EPOS_E", dataset="test", binarize=False, convert_to_int=False)
-    create_validation_set("../../data/EPOS_E", binary=False, convert_to_int=False)
-    # validate_output("../../data/EPOS_E/dtrain.jsonl")
+    arg_parser = ArgumentParser()
+
+    arg_parser.add_argument("--datapath", default="../../data/EPOS_E")
+    arg_parser.add_argument("--binarize", default="False")
+    arg_parser.add_argument("--convert_to_int", default="False")
+    arg_parser.add_argument("--balanced", default=".txt")
+    arg_parser.add_argument("--remove_duplicates", default="False")
+
+    args = arg_parser.parse_args()
+
+    # datapath, dataset, binarize = False, convert_to_int = False, balanced = ".txt", remove_duplicates = False
+
+    build_jsonlines_file(datapath=args.datapath, dataset="train", remove_duplicates=args.remove_duplicates,
+                         binarize=args.binarize, convert_to_int=args.convert_to_int, balanced=args.balanced)
+    build_jsonlines_file(datapath=args.datapath, dataset="test", remove_duplicates=args.remove_duplicates,
+                         binarize=args.binarize, convert_to_int=args.convert_to_int, balanced=args.balanced)
+    # create_validation_set("../../data/EPOS_E", binary=False, convert_to_int=False)
+    validate_output("../../data/EPOS_E/dtrain_balance_.jsonl")
 
