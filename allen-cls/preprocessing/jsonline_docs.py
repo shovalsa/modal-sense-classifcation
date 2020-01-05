@@ -1,6 +1,7 @@
 import jsonlines
 import os
 from argparse import ArgumentParser
+import os
 
 def build_jsonlines_file(datapath, dataset, binarize=False, convert_to_int=False, balanced=".txt", remove_duplicates=False):
     addition = "_binary" if binarize else "_int" if convert_to_int else "_duplicates_removed" if remove_duplicates else \
@@ -71,13 +72,16 @@ if __name__ == "__main__":
     arg_parser.add_argument("--remove_duplicates", default="False")
 
     args = arg_parser.parse_args()
+    binarize = False if args.binarize == "False" else True
+    convert_to_int = False if args.convert_to_int == "False" else True
+    remove_duplicates = False if args.remove_duplicates == "False" else True
 
     # datapath, dataset, binarize = False, convert_to_int = False, balanced = ".txt", remove_duplicates = False
 
-    build_jsonlines_file(datapath=args.datapath, dataset="train", remove_duplicates=args.remove_duplicates,
-                         binarize=args.binarize, convert_to_int=args.convert_to_int, balanced=args.balanced)
-    build_jsonlines_file(datapath=args.datapath, dataset="test", remove_duplicates=args.remove_duplicates,
-                         binarize=args.binarize, convert_to_int=args.convert_to_int, balanced=args.balanced)
+    build_jsonlines_file(datapath=args.datapath, dataset="train", remove_duplicates=remove_duplicates,
+                         binarize=binarize, convert_to_int=convert_to_int, balanced=args.balanced)
+    build_jsonlines_file(datapath=args.datapath, dataset="test", remove_duplicates=remove_duplicates,
+                         binarize=binarize, convert_to_int=convert_to_int, balanced=args.balanced)
     # create_validation_set("../../data/EPOS_E", binary=False, convert_to_int=False)
     validate_output("../../data/EPOS_E/dtrain_balance_.jsonl")
 
