@@ -39,8 +39,8 @@ class ModalityDatasetReader(DatasetReader):
 
         instance_meta = {"sentence_tokens": sentence_tokens}
 
-        instance_dict = {"sentence": TextField(sentence_tokens, self._token_indexers),
-                         "metadata": MetadataField(instance_meta)
+        instance_dict = {"tokens": TextField(sentence_tokens, self._token_indexers)#,
+                         #"metadata": MetadataField(instance_meta)
                          }
 
         if label is not None:

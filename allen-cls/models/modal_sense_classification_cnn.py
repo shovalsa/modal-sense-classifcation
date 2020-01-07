@@ -81,7 +81,8 @@ class ModalityClassificationModel(Model):
 
         concatenated_input = torch.cat([encoded_sentence], dim=1) # shape ``(batch_size, embedding_dim*2)`
 
-        label_logits = self._feed_forward(concatenated_input)
+        # label_logits = self._feed_forward(concatenated_input)
+        label_logits = self._feed_forward(encoded_sentence)
         label_probs = F.softmax(label_logits, dim=-1)
         # TODO: find out how to make multi-class classification
 

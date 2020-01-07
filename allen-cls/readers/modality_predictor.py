@@ -4,7 +4,7 @@ from allennlp.predictors.predictor import Predictor
 from overrides import overrides
 
 
-@Predictor.register('modality')
+@Predictor.register('modalityPredictor')
 class ModalityPredictor(Predictor):
     """
     Predictor for sequence to sequence models that visualizes attention scores
