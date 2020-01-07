@@ -12,7 +12,9 @@ def build_jsonl_by_datasource(datapath, dataset, datatype, balanced):
             for file in files:
                 if datatype in file:
                     write_dict_to_file(root, file, balanced, outfile)
-
+    if dataset == "train":
+        is_balanced = False if balanced == ".txt" else balanced
+        create_validation_set(datapath, balanced=is_balanced, trainfile=output)
 
 def write_dict_to_file(root, file, balanced, outfile):
     modal_verb = file.split("_")[0]
@@ -39,15 +41,17 @@ def build_jsonlines_file(datapath, dataset, balanced=".txt"):
                 write_dict_to_file(root, file, balanced, outfile)
     if dataset == "train":
         is_balanced = False if balanced == ".txt" else balanced
-        create_validation_set(datapath, balanced=is_balanced)
+        create_validation_set(datapath, output, balanced=is_balanced)
 
 
-def create_validation_set(datapath, balanced=None):
+def create_validation_set(datapath, trainfile, balanced=None):
     addition = "{}".format(balanced) if balanced else ""
-    train = "{}/train{}.jsonl".format(datapath, addition)
-    validation = "{}/validation{}.jsonl".format(datapath, addition)
-    new_train = "{}/dtrain{}.jsonl".format(datapath, addition)
-    with jsonlines.open(train, "r") as tr:
+    # train = "{}/train{}.jsonl".format(datapath, addition)
+    validation = trainfile.replace("train", "validation")
+    # validation = "{}/validation{}.jsonl".format(datapath, addition)
+    new_train = trainfile.replace("train", "dtrain")
+    # new_train = "{}/dtrain{}.jsonl".format(datapath, addition)
+    with jsonlines.open(trainfile, "r") as tr:
         with jsonlines.open(validation, mode="w") as trainf:
             with jsonlines.open(new_train, mode="w") as valf:
                 enum = 0
