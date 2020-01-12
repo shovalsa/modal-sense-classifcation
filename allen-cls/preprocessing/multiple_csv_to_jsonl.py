@@ -86,7 +86,8 @@ def single_dataset_to_jsonl(datapath, outfile):
                             except:
                                 print(line)
 
-def from_pound_separated_csv_to_jsonl(datapath, infile, all_modal_targets):
+def from_pound_separated_csv_to_jsonl(datapath, infile, all_modal_targets, old_labels):
+    dataset_size = 0
     if all_modal_targets:
         outfile = infile.replace(".txt", ".jsonl")
     else:
@@ -97,9 +98,29 @@ def from_pound_separated_csv_to_jsonl(datapath, infile, all_modal_targets):
                 tokens = [t.split("###") for t in line.split()]
                 for t, label in tokens:
                     if label.startswith("S") or label.startswith("B"):
-                        if all_modal_targets or t.lower() in ["can", "could", "may", "must", "shall", "should"]:
-                            jlout.write({"sentence": " ".join([token[0] for token in tokens]),
-                                         "label": label.split("-")[1], "modal_verb": t})
+                        if "circumstantial" in label:
+                            continue
+                        else:
+                            if all_modal_targets or t.lower() in ["can", "could", "may", "must", "shall", "should"]:
+                                jlout.write({"sentence": " ".join([token[0] for token in tokens]),
+                                             "label": old_labels[label.split("-")[1]], "modal_verb": t})
+                            dataset_size += 1
+    enum = 0
+    train = os.path.join(datapath, "dtrain_" + outfile)
+    validation = os.path.join(datapath, "validation_" + outfile)
+    test = os.path.join(datapath, "test_" + outfile)
+    with jsonlines.open(os.path.join(datapath, outfile), "r") as jlin:
+        with jsonlines.open(train, "w") as jltrain:
+            with jsonlines.open(validation, "w") as jlval:
+                with jsonlines.open(test, "w") as jltest:
+                    for line in jlin:
+                        if enum < dataset_size*0.8:
+                            jltrain.write(line)
+                        elif enum < dataset_size*0.9:
+                            jlval.write(line)
+                        else:
+                            jltest.write(line)
+                        enum += 1
 
 
 if __name__ == "__main__":
@@ -133,5 +154,18 @@ if __name__ == "__main__":
 
 
     elif "GME" in args.datapath:
-        from_pound_separated_csv_to_jsonl(datapath=args.datapath, infile=args.infile, all_modal_targets=all_modal_targets)
+        old_labels = {
+                        'ability': "dy",
+                        'ability_circumstantial': "dy",
+                        'buletic': "de",
+                        'buletic_teleological': "de",
+                        'deontic': "de",
+                        'epistemic': "ep",
+                        'epistemic_circumstantial': "ep",
+                        'priority': "de",
+                        'teleological': "de",
+                        'circumstantial': "circ"
+                      }
+        from_pound_separated_csv_to_jsonl(datapath=args.datapath, infile=args.infile,
+                                          all_modal_targets=all_modal_targets, old_labels=old_labels)
 
