@@ -86,6 +86,21 @@ def single_dataset_to_jsonl(datapath, outfile):
                             except:
                                 print(line)
 
+def from_pound_separated_csv_to_jsonl(datapath, infile, all_modal_targets):
+    if all_modal_targets:
+        outfile = infile.replace(".txt", ".jsonl")
+    else:
+        outfile = infile.replace(".txt", "_only_modal_verbs.jsonl")
+    with jsonlines.open(os.path.join(datapath, outfile), "w") as jlout:
+        with open(os.path.join(datapath, infile), "r") as src:
+            for line in src.readlines():
+                tokens = [t.split("###") for t in line.split()]
+                for t, label in tokens:
+                    if label.startswith("S") or label.startswith("B"):
+                        if all_modal_targets or t.lower() in ["can", "could", "may", "must", "shall", "should"]:
+                            jlout.write({"sentence": " ".join([token[0] for token in tokens]),
+                                         "label": label.split("-")[1], "modal_verb": t})
+
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
@@ -93,11 +108,14 @@ if __name__ == "__main__":
     arg_parser.add_argument("--datapath", default="../../data/EPOS_E")
     arg_parser.add_argument("--balanced", default=".txt")
     arg_parser.add_argument("--split_to_sources", default="False")
+    arg_parser.add_argument("--infile", default="modal-BIOSE-coarse.txt")
+    arg_parser.add_argument("--only_mv", default="False")
 
-
+    "../../data/GME/coarse_only_modal_verbs.jsonl"
     args = arg_parser.parse_args()
 
-    split_to_sources = False if args.split_to_sources == "False" else True
+    split_to_sources = False if args.split_to_sources in ["False", "0", "f", "F", "no", "No", "false"] else True
+    all_modal_targets = True if args.only_mv in ["False", "0", "f", "F", "no", "No", "false"] else False
     # datapath, dataset, binarize = False, convert_to_int = False, balanced = ".txt", remove_duplicates = False
     datatypes = {"classifier1": "MPQA", "classifier2": "EPOS+MPQA", "classifier3": "EPOS"}
 
@@ -112,4 +130,8 @@ if __name__ == "__main__":
 
     elif "MASC" in args.datapath:
         single_dataset_to_jsonl(args.datapath, "tagged_masc.jsonl")
+
+
+    elif "GME" in args.datapath:
+        from_pound_separated_csv_to_jsonl(datapath=args.datapath, infile=args.infile, all_modal_targets=all_modal_targets)
 
