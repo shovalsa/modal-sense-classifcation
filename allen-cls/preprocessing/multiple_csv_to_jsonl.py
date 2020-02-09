@@ -1,5 +1,4 @@
 import jsonlines
-import os
 from argparse import ArgumentParser
 import os
 
@@ -104,8 +103,9 @@ def from_pound_separated_csv_to_jsonl(datapath, infile, all_modal_targets, old_l
                             if all_modal_targets or t.lower() in ["can", "could", "may", "must", "shall", "should"]:
                                 jlout.write({"sentence": " ".join([token[0] for token in tokens]),
                                              "label": old_labels[label.split("-")[1]], "modal_verb": t})
-                            dataset_size += 1
+                                dataset_size += 1
     enum = 0
+    train_size, val_size = int(dataset_size*0.8), int(dataset_size*0.9)
     train = os.path.join(datapath, "dtrain_" + outfile)
     validation = os.path.join(datapath, "validation_" + outfile)
     test = os.path.join(datapath, "test_" + outfile)
@@ -114,15 +114,15 @@ def from_pound_separated_csv_to_jsonl(datapath, infile, all_modal_targets, old_l
             with jsonlines.open(validation, "w") as jlval:
                 with jsonlines.open(test, "w") as jltest:
                     for line in jlin:
-                        if enum < dataset_size*0.8:
+                        if enum < train_size:
                             jltrain.write(line)
-                        elif enum < dataset_size*0.9:
+                        elif enum < val_size:
                             jlval.write(line)
                         else:
                             jltest.write(line)
                         enum += 1
-
-
+    print(dataset_size, train_size, val_size)
+    
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
 

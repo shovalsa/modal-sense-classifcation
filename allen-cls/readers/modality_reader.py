@@ -31,10 +31,6 @@ class ModalityDatasetReader(DatasetReader):
                 yield self.sentence_to_instance(**json_line)
 
     def sentence_to_instance(self, sentence:str, label:str=None) -> Instance:
-        # Evidence in the dataset is a list of sentences. We can concatenate these into just one long string
-        # Extension Exercise: Can you make a new dataset reader and model that handles them individually?
-
-        # Tokenize the sentence and evidence
         sentence_tokens = self._sentence_tokenizer.tokenize(sentence)
 
         instance_meta = {"sentence_tokens": sentence_tokens}
